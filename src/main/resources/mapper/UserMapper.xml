@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.car.carsystem.dao.UserMapper">
+    <select id="userLogin" parameterType="com.car.carsystem.model.User" resultType="com.car.carsystem.model.User">
+        SELECT
+            t.User_Name AS userName,
+            t.User_Account AS userAccount,
+            t.`Last_Login_Time` AS lastLoginTime
+        FROM `t_user` t
+        WHERE t.User_Account = #{user.userName}
+        AND t.User_Password = #{user.passWord}
+    </select>
+
+    <select id="getUserInfo" parameterType="String" resultType="com.car.carsystem.model.UserInfo">
+        SELECT t.id,
+            t.User_Name AS userName,
+            t.User_Account AS userAccount,
+            CASE WHEN t.User_Type = '1' THEN 'スーパー管理者'
+                 WHEN t.User_Type = '2' THEN '店長'
+                 WHEN t.User_Type = '1' THEN 'お客'
+                 END AS userType,
+            t.User_Mobile AS userMobile,
+            t.Last_Login_Time AS lastLoginTime
+        FROM `t_user` t
+         <where>
+            1 = 1
+            <if test="userName != null and userName != ''">
+                AND t.User_Name LIKE CONCAT('%',#{userName},'%')
+            </if>
+            <if test="userMobile != null and userMobile != ''">
+                AND t.User_Mobile LIKE CONCAT('%',#{userMobile},'%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

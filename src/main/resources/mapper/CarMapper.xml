@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.car.carsystem.dao.CarMapper">
+
+    <select id="getCarList" resultType="com.car.carsystem.model.CarInfo">
+        SELECT
+            t.`id` AS id,
+            t.`Car_Code` as carCode,
+            t1.`Brands_Name` as carBrandName,
+            t2.`Model_Name` as carModelName,
+            t.`Car_Numbers` as carNumbers,
+            t.`Car_Photo` as carPhoto,
+            CASE WHEN t.`Car_Status` = 0 THEN '未使用'
+                 WHEN t.`Car_Status` = 1 THEN '貸し出された' END AS carStatus
+        FROM `t_car` t
+        LEFT JOIN `ｔ_car_brands` t1 ON t.`Car_Brands` = t1.`Brands_Code`
+        LEFT JOIN `t_car_model` t2 ON t.`Car_Model` = t2.`Model_Code`
+        <where>
+            1 = 1
+            <if test="carBrandName != null and carBrandName != ''">
+                AND t1.Brands_Name like CONCAT('%',#{carBrandName},'%')
+            </if>
+            <if test="carModelName != null and carModelName != ''">
+                AND t2.Model_Name like CONCAT('%',#{carModelName},'%')
+            </if>
+        </where>
+        ORDER BY t.`Create_Date` DESC
+    </select>
+
+    <delete id="deleteCarInfo" parameterType="java.util.List">
+        DELETE FROM `t_car` WHERE id IN
+        <foreach collection="deleteList" index="index" item="item" open="(" separator="," close=")">
+              #{item}
+        </foreach>
+    </delete>
+
+    <select id="getCarInfoById" parameterType="java.util.List" resultType="com.car.carsystem.model.CarInfo">
+        SELECT
+            t.`id` AS id,
+            t.`Car_Code` AS carCode,
+            t.`Car_Brands` AS carBrandCode,
+            t1.`Brands_Name` AS carBrandName,
+            t.`Car_Model` AS carModelCode,
+            t2.`Model_Name` AS carModelName,
+            t.`Car_Numbers` AS carNumbers,
+            t.`Car_Photo` AS carPhoto,
+            CASE WHEN t.`Car_Status` = 0 THEN '未使用'
+            WHEN t.`Car_Status` = 1 THEN '貸し出された' END AS carStatus
+        FROM `t_car` t
+        LEFT JOIN `ｔ_car_brands` t1 ON t.`Car_Brands` = t1.`Brands_Code`
+        LEFT JOIN `t_car_model` t2 ON t.`Car_Model` = t2.`Model_Code`
+        WHERE t.id IN
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        LIMIT 1
+    </select>
+
+    <update id="updateCarInfo" parameterType="com.car.carsystem.model.CarInfo">
+        UPDATE `t_car`
+            SET Car_Brands = #{carInfo.carBrandCode},
+                Car_Model = #{carInfo.carModelCode},
+                Car_Numbers = #{carInfo.carNumbers},
+                Car_Photo = #{carInfo.carPhoto},
+                Car_Status = #{carInfo.carStatus}
+        WHERE Car_Code = #{carInfo.carCode}
+    </update>
+
+    <select id="getCarBrandSelection" resultType="com.car.carsystem.model.CarBrand">
+        SELECT
+            t.Brands_Code AS carBrandCode,
+            t.Brands_Name AS carBrandName
+        FROM `ｔ_car_brands` t
+    </select>
+
+    <select id="getCarCarModelSelection" resultType="com.car.carsystem.model.CarModel">
+        SELECT
+            t.Model_Code AS carModelCode,
+            t.Model_Name AS carModelName
+        FROM `t_car_model` t
+        WHERE t.Brands_Code = #{carBrand}
+    </select>
+
+    <insert id="insertCarInfo" parameterType="com.car.carsystem.model.CarInfo">
+        INSERT INTO t_car
+        (Car_Code,Car_Brands,Car_Model,Car_Numbers,Car_Photo)
+        VALUE
+        (#{carInfo.carCode},#{carInfo.carBrandCode},#{carInfo.carModelCode},#{carInfo.carNumbers},#{carInfo.carPhoto})
+    </insert>
+
+    <select id="getNextCarCode" resultType="String">
+        SELECT getMAXCarCode();
+    </select>
+
+    <select id="getBrandInfo" parameterType="String" resultType="com.car.carsystem.model.CarBrand">
+
+    </select>
+</mapper>
